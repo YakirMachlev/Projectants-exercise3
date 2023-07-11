@@ -3,9 +3,13 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-#define BUFFER_INITIAL_CAPACITY 80
-#define BOOL char
+#define BUFFER_INITIAL_CAPACITY 100
+
+/* #ifndef BOOLEAN
+#define BOOLEAN
+typedef enum{FALSE, TRUE}bool;
+#endif */
 
 void display_buffer(char *buffer);
-char *insert_to_buffer(char *buffer, int *length);
+int insert_to_buffer(char **buffer, int *length, FILE* stream);
 #endif

@@ -7,34 +7,37 @@ void display_buffer(char *buffer)
     printf("\n");
 }
 
-char *insert_to_buffer(char *buffer, int *length)
+int insert_to_buffer(char **buffer, int *maxLen, FILE *stream)
 {
     int capacity;
     char tav;
-    BOOL flag;
     char *tempBuffer;
+    int length;
 
-    capacity = BUFFER_INITIAL_CAPACITY;
-    *length = 0;
-    flag = 1;
+    capacity = *maxLen;
+    length = 0;
 
-    while ((tav = getchar()) != '\n' && tav != EOF && flag)
+    if (feof(stream))
+        return -1;
+
+    while ((tav = getc(stream)) != '\n' && tav != EOF)
     {
-        buffer[(*length)++] = tav;
-        if (*length >= capacity)
+        (*buffer)[length++] = tav;
+        if (length >= capacity)
         {
             capacity += BUFFER_INITIAL_CAPACITY / 2;
-            tempBuffer = (char *)realloc(buffer, capacity * sizeof(char));
+            *maxLen = capacity;
+            tempBuffer = (char *)realloc(*buffer, capacity * sizeof(char));
             if (tempBuffer)
-                buffer = tempBuffer;
+                *buffer = tempBuffer;
             else
             {
                 printf("Line too long. Reallocation failed\n");
-                flag = 0;
+                return -1;
             }
         }
     }
-    buffer[*length] = '\0';
+    (*buffer)[length] = '\0';
 
-    return buffer;
+    return length;
 }
