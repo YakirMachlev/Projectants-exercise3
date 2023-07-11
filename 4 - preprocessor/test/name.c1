@@ -1,0 +1,50 @@
+#include <stdio.h>
+#include "test/set.h"
+
+
+int factorial(int n)
+{
+    if (n == 0 || n == 1)
+    {
+        return 1;
+    }
+    else
+    {
+        
+        return n * factorial(n - 1);
+    }
+}
+
+int main()
+{
+    int number;
+
+    printf("Enter a number: ");
+    scanf("%d", &number);
+
+    
+    int result = factorial(number);
+
+    printf("The factorial of %d is: %d\n", number, result);
+
+    
+    printf("Pattern:\n");
+    for (int i = 1; i <= number; i++)
+    {
+        
+        for (int j = 1; j <= number - i; j++)
+        {
+            printf(" ");
+        }
+
+        
+        for (int k = 1; k <= i; k++)
+        {
+            printf("* ");
+        }
+
+        printf("\n");
+    }
+
+    return 0;
+}

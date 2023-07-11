@@ -1,0 +1,43 @@
+#include "dynamicInput.h"
+
+void display_buffer(char *buffer)
+{
+    while (*buffer)
+        printf("%c", *(buffer++));
+    printf("\n");
+}
+
+int insert_to_buffer(char **buffer, int *maxLen, FILE *stream)
+{
+    int capacity;
+    char tav;
+    char *tempBuffer;
+    int length;
+
+    capacity = *maxLen;
+    length = 0;
+
+    if (feof(stream))
+        return -1;
+
+    while ((tav = getc(stream)) != '\n' && tav != EOF)
+    {
+        (*buffer)[length++] = tav;
+        if (length >= capacity)
+        {
+            capacity += BUFFER_INITIAL_CAPACITY / 2;
+            *maxLen = capacity;
+            tempBuffer = (char *)realloc(*buffer, capacity * sizeof(char));
+            if (tempBuffer)
+                *buffer = tempBuffer;
+            else
+            {
+                printf("Line too long. Reallocation failed\n");
+                return -1;
+            }
+        }
+    }
+    (*buffer)[length] = '\0';
+
+    return length;
+}
