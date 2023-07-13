@@ -1,0 +1,146 @@
+#ifndef SET
+#define SET
+
+#include <stdio.h>
+
+typedef __uint128_t set;
+#ifndef DYN_INPUT
+#define DYN_INPUT
+#include <stdio.h>
+#include <stdlib.h>
+
+#define BUFFER_INITIAL_CAPACITY 100
+
+
+
+void display_buffer(char *buffer);
+int insert_to_buffer(char **buffer, int *length, FILE* stream);
+#endif
+
+
+void display_buffer(char *buffer)
+{
+    while (*buffer)
+        printf("%c", *(buffer++));
+    printf("\n");
+}
+
+int insert_to_buffer(char **buffer, int *maxLen, FILE *stream)
+{
+    int capacity;
+    char tav;
+    char *tempBuffer;
+    int length;
+
+    capacity = *maxLen;
+    length = 0;
+
+    if (feof(stream))
+        return -1;
+
+    while ((tav = getc(stream)) != '\n' && tav != EOF)
+    {
+        (*buffer)[length++] = tav;
+        if (length >= capacity)
+        {
+            capacity += BUFFER_INITIAL_CAPACITY /2;
+            *maxLen = capacity;
+            tempBuffer = (char *)realloc(*buffer, capacity * sizeof(char));
+            if (tempBuffer)
+                *buffer = tempBuffer;
+            else
+            {
+                printf("Line too long. Reallocation failed\n");
+                return -1;
+            }
+        }
+    }
+    (*buffer)[length] = '\0';
+
+    return length;
+}
+
+
+void read_set(set *curSet, char *members);
+void print_set(set curSet);
+void union_set(set set1, set set2, set *setTo);
+void intersect_set(set set1, set set2, set *setTo);
+void sub_set(set set1, set set2, set *setTo);
+void symdiff_set(set set1, set set2, set *setTo);
+#endif
+
+
+#define BIT_CHECK(byte, nbit) (((byte) >> (nbit)) & 1)
+
+void turn_bit_on(set *s, char offset)
+{
+    set mask;
+
+    mask = 1;
+    mask <<= offset;
+    *s |= mask;
+}
+
+void read_set(set *curSet, char *members)
+{
+    *curSet = 0;
+
+    
+
+    while (*members != -1)
+    {
+        
+        turn_bit_on(curSet, *members);
+        members++;
+    }
+    printf("\n");
+}
+
+void print_set(set curSet)
+{
+    char offset;
+    int countMembers;
+    
+
+    countMembers = 1;
+    if (curSet)
+    {
+        printf("The set members are:\n");
+        for (offset = 0; offset < sizeof(curSet) * 8; offset++)
+        {
+            if (BIT_CHECK(curSet, offset))
+            {
+                printf("%d ", offset);
+                countMembers++;
+            }
+            if (!(countMembers % 17))
+            {
+                countMembers = 1;
+                printf("\n");
+            }
+        }
+    }
+    else
+        printf("The set is empty\n");
+    
+}
+
+void union_set(set set1, set set2, set *setTo)
+{
+    *setTo = set1 | set2;
+}
+
+void intersect_set(set set1, set set2, set *setTo)
+{
+    *setTo = set1 & set2;
+}
+
+void sub_set(set set1, set set2, set *setTo)
+{
+    *setTo = (set1 ^ set2) & set1;
+}
+
+void symdiff_set(set set1, set set2, set *setTo)
+{
+    *setTo = set1 ^ set2;
+}

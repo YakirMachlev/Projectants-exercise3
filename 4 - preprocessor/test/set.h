@@ -4,6 +4,7 @@
 #include <stdio.h>
 
 typedef __uint128_t set;
+#include "test//a.h"
 
 void read_set(set *curSet, char *members);
 void print_set(set curSet);

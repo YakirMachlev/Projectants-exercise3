@@ -1,22 +1,4 @@
-#ifndef SET
-#define SET
-
-#include <stdio.h>
-
-typedef __uint128_t set;
-#ifndef DYN_INPUT
-#define DYN_INPUT
-#include <stdio.h>
-#include <stdlib.h>
-
-#define BUFFER_INITIAL_CAPACITY 100
-
-
-
-void display_buffer(char *buffer);
-int insert_to_buffer(char **buffer, int *length, FILE* stream);
-#endif
-
+#include "test//a.h"
 
 void display_buffer(char *buffer)
 {
@@ -43,7 +25,7 @@ int insert_to_buffer(char **buffer, int *maxLen, FILE *stream)
         (*buffer)[length++] = tav;
         if (length >= capacity)
         {
-            capacity += BUFFER_INITIAL_CAPACITY /2;
+            capacity += BUFFER_INITIAL_CAPACITY / 2;
             *maxLen = capacity;
             tempBuffer = (char *)realloc(*buffer, capacity * sizeof(char));
             if (tempBuffer)
@@ -59,12 +41,3 @@ int insert_to_buffer(char **buffer, int *maxLen, FILE *stream)
 
     return length;
 }
-
-
-void read_set(set *curSet, char *members);
-void print_set(set curSet);
-void union_set(set set1, set set2, set *setTo);
-void intersect_set(set set1, set set2, set *setTo);
-void sub_set(set set1, set set2, set *setTo);
-void symdiff_set(set set1, set set2, set *setTo);
-#endif

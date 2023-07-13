@@ -5,6 +5,7 @@
 #include <search.h>
 #include "dynamicInput.h"
 
+#define MAX_AMOUNT_OF_MODULES 256
 void preprocess_file(char*);
 typedef enum{FALSE, TRUE}bool;
 
@@ -121,23 +122,57 @@ void copy_file_to_file(char* includeFileName, char* includeLine, int includeLine
         printf("Couldn't find the file \"%s\"\n", includeFileName);
 }
 
-void analyze_lines_headers_to_file(char* line, char* includeLine, int includeLineSize, FILE* outputFile)
+bool identicle_strings_until_char(char* str1, char* str2, char saparator)
+{
+    char* curr1;
+    char* curr2;
+    char temp1;
+    char temp2;
+    bool identicle;
+
+    curr1 = str1;
+    curr2 = str2;
+    while (*(curr1++) != saparator);
+    while (*(curr2++) != saparator);
+    temp1 = *curr1;
+    temp2 = *curr2;
+    *curr1 = '\0';
+    *curr2 = '\0';
+    identicle = !strcmp(str1, str2);
+    *curr1 = temp1;
+    *curr2 = temp2;
+
+    return identicle;
+}
+
+void analyze_lines_headers_to_file(char* line, char* includeLine, int includeLineSize, FILE* outputFile, char* callerName)
 {
     char* includeFileName;
+    int len;
+    char* modifiedFileName;
 
     if (!strncmp(line, "#include \"", 10))
     {
         includeFileName = extract_header_name(line);
         if (includeFileName)
         {
-            copy_file_to_file(includeFileName, includeLine, includeLineSize, outputFile);
-            preprocess_file(includeFileName); /* recursion */
-            
-            includeFileName[strlen(includeFileName) - 1] = 'c';
-            preprocess_file(includeFileName); /* recursion */
+            len = strlen(includeFileName);
+            modifiedFileName = append_char_to_string(includeFileName, '2');
+            if (identicle_strings_until_char(includeFileName, callerName, '.'))
+            {
+                preprocess_file(includeFileName);
+                copy_file_to_file(modifiedFileName, includeLine, includeLineSize, outputFile);
+            }
+            else
+            {
+                includeFileName[len - 1] = 'c';
+                preprocess_file(includeFileName);
+                modifiedFileName[len - 1] = 'c';
+                copy_file_to_file(modifiedFileName, includeLine, includeLineSize, outputFile);
+            }
 
-            copy_file_to_file(includeFileName, includeLine, includeLineSize, outputFile);
             free(includeFileName);
+            free(modifiedFileName);
         }
         else
             printf("Invalid #include\n");
@@ -149,7 +184,7 @@ void analyze_lines_headers_to_file(char* line, char* includeLine, int includeLin
     }
 }
 
-void insert_headers_to_file(char* inputFileName, char* outputFileName)
+void insert_headers_to_file(char* inputFileName, char* outputFileName, char* callerName)
 {
     FILE* inputFile;
     FILE* outputFile;
@@ -169,9 +204,8 @@ void insert_headers_to_file(char* inputFileName, char* outputFileName)
         includeLineSize = BUFFER_INITIAL_CAPACITY;
         
         while (insert_to_buffer(&line, &lineSize, inputFile) != -1)
-        {
-            analyze_lines_headers_to_file(line, includeLine, includeLineSize, outputFile);
-        }        
+            analyze_lines_headers_to_file(line, includeLine, includeLineSize, outputFile, callerName);
+        
         free(line);
         free(includeLine);
     }
@@ -187,7 +221,7 @@ void insert_headers_to_file_wrapper(char* inputFileName)
     
     withoutComments = append_char_to_string(inputFileName, '1');
     withoutHeaders = append_char_to_string(inputFileName, '2');
-    insert_headers_to_file(withoutComments, withoutHeaders);
+    insert_headers_to_file(withoutComments, withoutHeaders, inputFileName);
     
     free(withoutComments);
     free(withoutHeaders);
@@ -197,6 +231,7 @@ void preprocess_file(char* fileName)
 {
     ENTRY e, *ep;
 
+    printf("current file: %s\n", fileName);
     e.key = fileName;
     e.data = (void*)1;
     ep = hsearch(e, FIND);
@@ -215,7 +250,7 @@ void preprocess_file(char* fileName)
 
 int main(int argc, char* argv[])
 {
-    hcreate(256);
+    hcreate(MAX_AMOUNT_OF_MODULES);
     
     if (argc == 2)
         preprocess_file(argv[1]);
