@@ -36,8 +36,9 @@ void convert_number_to_word(char *num, FILE *out)
 
 void analyze_input(FILE *in, FILE *out)
 {
-    char num[3];
+    char num[4];
     BOOL valid;
+    char realNum;
 
     valid = 1;
     if (!in)
@@ -54,7 +55,13 @@ void analyze_input(FILE *in, FILE *out)
     if (valid)
     {
         while (fscanf(in, "%s", num) != EOF)
-            convert_number_to_word(num, out);
+        {
+            realNum = atoi(num);
+            if (realNum > 99 || realNum < 0)
+                fprintf(stderr, "Number out of range\n");
+            else
+                convert_number_to_word(num, out);
+        }
     }
 
     if (in)

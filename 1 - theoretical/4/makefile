@@ -1,6 +1,6 @@
 CC = gcc
 CFLAGS  = -Wall -ansi -pedantic
-TARGET = 3
+TARGET = 4
 
 $(TARGET): $(TARGET).c
 	$(CC) $(CFLAGS) -o $(TARGET) $(TARGET).c

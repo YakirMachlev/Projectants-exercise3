@@ -1,6 +1,10 @@
 #include <stdio.h>
 
+#ifndef BOOL
+#define BOOL
 typedef enum{FALSE, TRUE}bool;
+#endif
+
 #define QUEUE_SIZE 30
 
 typedef struct

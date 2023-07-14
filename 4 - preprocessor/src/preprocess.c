@@ -7,62 +7,39 @@
 
 #define MAX_AMOUNT_OF_MODULES 256
 void preprocess_file(char*);
+#ifndef BOOL
+#define BOOL
 typedef enum{FALSE, TRUE}bool;
+#endif
 
-FILE* open_file_r(char* fileName)
-{
-    FILE *f;
-
-    f = fopen(fileName, "r");
-    if (!f)
-        printf("The file %s doesn't exist\n", fileName);
-    
-    return f;
-}
-
-FILE* open_file_w(char* fileName)
-{
-    FILE *f;
-
-    f = fopen(fileName, "w");
-    if (!f)
-        printf("Couldn't create the file %s\n", fileName);
-    
-    return f;
-}
-
+/**
+ * @brief creates a copy of the given string and appends a single given
+ * character to the end of the string
+ * 
+ * @param str a string
+ * @param suffix the character that we append
+ * @return char* a copy of the string with the suffix appended
+ */
 char* append_char_to_string(char* str, char suffix)
 {
     char* newStr;
     unsigned char strLen;
 
     strLen = strlen(str);
-    newStr = (char*)malloc(sizeof(char) * (strLen + 2));
+    newStr = (char*)malloc(sizeof(char) * (strLen + 1));
     strcpy(newStr, str);
     newStr[strLen] = suffix;
     newStr[strLen + 1] = '\0';
     return newStr;
 }
 
-char* extract_header_name(char* line)
-{
-    int fileNameLength;
-    char* closingQuote;
-    char* includeFileName;
-
-    includeFileName = NULL;
-    closingQuote = strchr(line + 10, '\"');
-    if (closingQuote)
-    {
-        fileNameLength = closingQuote - (line + 10);
-        includeFileName = (char*)malloc((fileNameLength + 1) * sizeof(char));
-        strncpy(includeFileName, line + 10, fileNameLength);
-        includeFileName[fileNameLength] = '\0';        
-    }
-    return includeFileName;
-}
-
-
+/**
+ * @brief iterates over a file and copies to an output file the entire content
+ * of the input file except for the comments
+ * 
+ * @param inputFileName the input file
+ * @param outputFileName the output file
+ */
 void remove_comments(char* inputFileName, char* outputFileName)
 {
     char currentChar;
@@ -71,8 +48,8 @@ void remove_comments(char* inputFileName, char* outputFileName)
     FILE* outputFile;
     bool commentEnd;
 
-    inputFile = open_file_r(inputFileName);
-    outputFile = open_file_w(outputFileName);
+    inputFile = fopen(inputFileName, "r");
+    outputFile = fopen(outputFileName, "w");
 
     if (inputFile && outputFile)
     {
@@ -91,11 +68,20 @@ void remove_comments(char* inputFileName, char* outputFileName)
             fputc(currentChar, outputFile);
         }
     }
+    else
+        printf("Error when opening the files\n");
 
     fclose(inputFile);
     fclose(outputFile);
 }
 
+/**
+ * @brief creates the name for the output file used in the remove_comments
+ * function, and calls it
+ * 
+ * @param inputFileName the name of the input file, that is used as the base
+ * for the output file name
+ */
 void remove_comments_wrapper(char* inputFileName)
 {
     char* withoutComments;
@@ -104,11 +90,77 @@ void remove_comments_wrapper(char* inputFileName)
     free(withoutComments);
 }
 
+/**
+ * @brief extracts the name of the header from a line that contains an
+ * #include statement
+ * 
+ * @param line the line that from which it extract the header
+ * @return char* the header name
+ */
+char* extract_header_name(char* line)
+{
+    int fileNameLength;
+    char* closingQuote;
+    char* includeFileName;
+
+    includeFileName = NULL;
+    closingQuote = strchr(line + 10, '\"');
+    if (closingQuote)
+    {
+        fileNameLength = closingQuote - (line + 10);
+        includeFileName = (char*)malloc((fileNameLength + 1) * sizeof(char));
+        strncpy(includeFileName, line + 10, fileNameLength);
+        includeFileName[fileNameLength] = '\0';        
+    }
+    return includeFileName;
+}
+
+/**
+ * @brief checks if two strings are identicle until they reach a given
+ * character
+ * 
+ * @param str1 the first string
+ * @param str2 the second string
+ * @param separator the character that acts as the separator
+ * @return true when the string are identicle till a certain char
+ * @return false when the string aren't identicle till a certain char
+ */
+bool identicle_strings_until_char(char* str1, char* str2, char separator)
+{
+    char* curr1;
+    char* curr2;
+    char temp1;
+    char temp2;
+    bool identicle;
+
+    curr1 = str1;
+    curr2 = str2;
+    while (*(curr1++) != separator);
+    while (*(curr2++) != separator);
+    temp1 = *curr1;
+    temp2 = *curr2;
+    *curr1 = '\0';
+    *curr2 = '\0';
+    identicle = !strcmp(str1, str2);
+    *curr1 = temp1;
+    *curr2 = temp2;
+
+    return identicle;
+}
+
+/**
+ * @brief copies all the content of the included file into the given output file
+ * 
+ * @param includeFileName the name of the file that is included
+ * @param includeLine used to store each line from the included file
+ * @param includeLineSize the max size of a line in the included file
+ * @param outputFile the file that the function writes into
+ */
 void copy_file_to_file(char* includeFileName, char* includeLine, int includeLineSize, FILE* outputFile)
 {
     FILE* includeFile;
 
-    includeFile = open_file_r(includeFileName);
+    includeFile = fopen(includeFileName, "r");
     if (includeFile)
     {
         while (insert_to_buffer(&includeLine, &includeLineSize, includeFile) != -1)
@@ -122,29 +174,16 @@ void copy_file_to_file(char* includeFileName, char* includeLine, int includeLine
         printf("Couldn't find the file \"%s\"\n", includeFileName);
 }
 
-bool identicle_strings_until_char(char* str1, char* str2, char saparator)
-{
-    char* curr1;
-    char* curr2;
-    char temp1;
-    char temp2;
-    bool identicle;
-
-    curr1 = str1;
-    curr2 = str2;
-    while (*(curr1++) != saparator);
-    while (*(curr2++) != saparator);
-    temp1 = *curr1;
-    temp2 = *curr2;
-    *curr1 = '\0';
-    *curr2 = '\0';
-    identicle = !strcmp(str1, str2);
-    *curr1 = temp1;
-    *curr2 = temp2;
-
-    return identicle;
-}
-
+/**
+ * @brief checks if a line contains an #include statement. If so, it will recursively preprocess
+ * the header file. Else, it will copy the line to the given file.
+ * 
+ * @param line the analyzed line
+ * @param includeLine used to store each line from the included file
+ * @param includeLineSize the max size of a line in the included file
+ * @param outputFile the file that the function writes into
+ * @param callerName the name of the file that contains the include statments
+ */
 void analyze_lines_headers_to_file(char* line, char* includeLine, int includeLineSize, FILE* outputFile, char* callerName)
 {
     char* includeFileName;
@@ -184,6 +223,14 @@ void analyze_lines_headers_to_file(char* line, char* includeLine, int includeLin
     }
 }
 
+/**
+ * @brief copies from the given input file the entire text written in the #include statements
+ * (recursively) into the given output file
+ * 
+ * @param inputFileName the input file
+ * @param outputFileName the output file
+ * @param callerName the name of the file that contains the include statements
+ */
 void insert_headers_to_file(char* inputFileName, char* outputFileName, char* callerName)
 {
     FILE* inputFile;
@@ -193,8 +240,8 @@ void insert_headers_to_file(char* inputFileName, char* outputFileName, char* cal
     char* includeLine;
     int includeLineSize;
 
-    inputFile = open_file_r(inputFileName);
-    outputFile = open_file_w(outputFileName);
+    inputFile = fopen(inputFileName, "r");
+    outputFile = fopen(outputFileName, "w");
 
     if (inputFile && outputFile)
     {
@@ -209,11 +256,20 @@ void insert_headers_to_file(char* inputFileName, char* outputFileName, char* cal
         free(line);
         free(includeLine);
     }
-
+    else
+        printf("Error when opening the files\n");
+    
     fclose(inputFile);
     fclose(outputFile);
 }
 
+/**
+ * @brief creates the name for the output file used in the insert_headers_to_file
+ * function, and calls it
+ * 
+ * @param inputFileName the name of the input file, that is used as the base
+ * for the output file name
+ */
 void insert_headers_to_file_wrapper(char* inputFileName)
 {
     char* withoutComments;
@@ -227,6 +283,13 @@ void insert_headers_to_file_wrapper(char* inputFileName)
     free(withoutHeaders);
 }
 
+/**
+ * @brief creates fileName.c1, where all of the comments are removed, and
+ * also fileName.c2 that is based on fileName.c1, where the entire text
+ * written in the #include statements are copied into the file.
+ * 
+ * @param fileName the fileName that it preprocesses
+ */
 void preprocess_file(char* fileName)
 {
     ENTRY e, *ep;

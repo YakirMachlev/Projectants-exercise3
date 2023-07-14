@@ -2,45 +2,13 @@
 #include <unistd.h>
 #include <stdlib.h>
 #include "queue.h"
+#include "graph.h"
 
-/* typedef enum{FALSE, TRUE}bool; */
-#define N 11
-#define V (N * N)
-typedef bool adjmat[N][N];
+#ifndef BOOL
+#define BOOL
+typedef enum{FALSE, TRUE}bool;
+#endif
 #define IS_TERMINAL isatty(0)
-
-
-void print_matrix(adjmat mat)
-{
-    int row;
-    int col;
-
-    for (row = 0; row < N; row++)
-    {
-        for (col = 0; col < N; col++)
-            printf("%d ", mat[row][col]);
-        printf("\n");
-    }
-    printf("\n");
-}
-
-bool insert_numbers_to_matrix(adjmat mat)
-{
-    bool bit;
-    int offset;
-    bool end;
-
-    end = 0;
-    printf("Enter %d values:\n", V);
-
-    for (offset = 0; offset < V && !end; offset++)
-    {
-        end = scanf("%d",  &bit) == EOF;
-        mat[offset / N][offset % N] = bit;
-        end |= (bit != 1 && bit != 0);
-    }
-    return !end;
-}
 
 bool path(adjmat adjacencyMat, unsigned char index1, unsigned char index2)
 {
